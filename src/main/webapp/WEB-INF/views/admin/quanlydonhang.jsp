@@ -269,6 +269,9 @@
                 </tbody>
             </table>
 
+            <!-- Phân trang đơn hàng -->
+            <div id="orderPagination"></div>
+
             <!-- Khung chi tiết đơn hàng được chọn theo Wireframe -->
             <div id="orderDetailBox" style="margin-top: 24px; padding: 18px 22px; border: 1px solid #d9d4ca; border-radius: 8px; background: #fafaf8; border-left: 4px solid #1f5f5b;">
                 <div class="b" id="detailOrderTitle" style="font-size: 15px; font-weight: 700; margin-bottom: 8px; color: #23201c;">Chi tiết #1024</div>
@@ -286,9 +289,93 @@
     <script>
         var currentFilter = 'all';
         var activeOrderId = '#1024';
+        var orderCurrentPage = 1;
+        var ORDER_PAGE_SIZE = 6;
+
+        function renderAdminPagination(containerId, currentPage, totalPages, totalItems, pageSize, onPageChangeFnName) {
+            var container = document.getElementById(containerId);
+            if (!container) return;
+            if (totalItems === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            var startItem = (currentPage - 1) * pageSize + 1;
+            var endItem = Math.min(currentPage * pageSize, totalItems);
+
+            var btnBase = 'min-width: 34px; height: 34px; padding: 0 8px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; border: 1px solid #cbd5e1; background: #ffffff; color: #334155;';
+            var btnActive = 'min-width: 34px; height: 34px; padding: 0 8px; border-radius: 6px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; cursor: default; border: 1.5px solid #1f5f5b; background: #1f5f5b; color: #ffffff; box-shadow: 0 2px 5px rgba(31,95,91,0.25);';
+            var btnDisabled = 'min-width: 34px; height: 34px; padding: 0 8px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; background: #f8fafc; color: #cbd5e1; cursor: not-allowed;';
+
+            var html = '<div class="admin-pagination" style="margin-top: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 4px; border-top: 1px solid #e7e2d8;">';
+            html += '<div style="font-size: 13px; color: #64748b; font-weight: 500;">Hiển thị <strong>' + startItem + ' - ' + endItem + '</strong> trên <strong>' + totalItems + '</strong> mục</div>';
+
+            if (totalPages <= 1) {
+                html += '</div>';
+                container.innerHTML = html;
+                return;
+            }
+
+            html += '<div style="display: flex; align-items: center; gap: 6px;">';
+
+            // Nút Đầu « và Trước ‹
+            if (currentPage > 1) {
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(1)" style="' + btnBase + '" title="Trang đầu">«</button>';
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(' + (currentPage - 1) + ')" style="' + btnBase + '" title="Trang trước">‹</button>';
+            } else {
+                html += '<button type="button" disabled style="' + btnDisabled + '">«</button>';
+                html += '<button type="button" disabled style="' + btnDisabled + '">‹</button>';
+            }
+
+            // Trang số
+            var startPage = Math.max(1, currentPage - 2);
+            var endPage = Math.min(totalPages, currentPage + 2);
+            if (endPage - startPage < 4) {
+                if (startPage === 1) endPage = Math.min(totalPages, startPage + 4);
+                else if (endPage === totalPages) startPage = Math.max(1, endPage - 4);
+            }
+
+            if (startPage > 1) {
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(1)" style="' + btnBase + '">1</button>';
+                if (startPage > 2) html += '<span style="color: #94a3b8; padding: 0 2px;">…</span>';
+            }
+
+            for (var p = startPage; p <= endPage; p++) {
+                if (p === currentPage) {
+                    html += '<button type="button" style="' + btnActive + '">' + p + '</button>';
+                } else {
+                    html += '<button type="button" onclick="' + onPageChangeFnName + '(' + p + ')" style="' + btnBase + '" onmouseover="this.style.borderColor=\'#1f5f5b\'; this.style.color=\'#1f5f5b\'" onmouseout="this.style.borderColor=\'#cbd5e1\'; this.style.color=\'#334155\'">' + p + '</button>';
+                }
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += '<span style="color: #94a3b8; padding: 0 2px;">…</span>';
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(' + totalPages + ')" style="' + btnBase + '">' + totalPages + '</button>';
+            }
+
+            // Nút Sau › và Cuối »
+            if (currentPage < totalPages) {
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(' + (currentPage + 1) + ')" style="' + btnBase + '" title="Trang sau">›</button>';
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(' + totalPages + ')" style="' + btnBase + '" title="Trang cuối">»</button>';
+            } else {
+                html += '<button type="button" disabled style="' + btnDisabled + '">›</button>';
+                html += '<button type="button" disabled style="' + btnDisabled + '">»</button>';
+            }
+
+            html += '</div></div>';
+            container.innerHTML = html;
+        }
+
+        function changeOrderPage(page) {
+            orderCurrentPage = page;
+            renderOrders();
+            var mainContent = document.querySelector('.admin-main');
+            if (mainContent) mainContent.scrollTop = 0;
+        }
 
         function filterOrders(status, btn) {
             currentFilter = status;
+            orderCurrentPage = 1;
             var chips = document.querySelectorAll('.pill-btn');
             chips.forEach(function(c) { c.classList.remove('active'); });
             if (btn) btn.classList.add('active');
@@ -357,19 +444,28 @@
             }
 
             var tbody = document.getElementById('adminOrderTableBody');
+            var paginationEl = document.getElementById('orderPagination');
             if (!tbody) return;
 
             if (orders.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 24px; color: #8a847b;">Không có đơn hàng nào trong mục này</td></tr>';
                 document.getElementById('orderDetailBox').style.display = 'none';
+                if (paginationEl) paginationEl.innerHTML = '';
                 return;
             }
 
             document.getElementById('orderDetailBox').style.display = 'block';
 
+            var totalPages = Math.ceil(orders.length / ORDER_PAGE_SIZE);
+            if (orderCurrentPage > totalPages) orderCurrentPage = totalPages;
+            if (orderCurrentPage < 1) orderCurrentPage = 1;
+
+            var startIndex = (orderCurrentPage - 1) * ORDER_PAGE_SIZE;
+            var pageOrders = orders.slice(startIndex, startIndex + ORDER_PAGE_SIZE);
+
             var html = '';
-            for (var i = 0; i < orders.length; i++) {
-                var o = orders[i];
+            for (var i = 0; i < pageOrders.length; i++) {
+                var o = pageOrders[i];
                 var customerName = o.customer ? o.customer.split(' ').slice(-2).join(' ') : 'Khách';
                 var isSelected = o.id === activeOrderId;
                 
@@ -388,6 +484,8 @@
                 '</tr>';
             }
             tbody.innerHTML = html;
+
+            renderAdminPagination('orderPagination', orderCurrentPage, totalPages, orders.length, ORDER_PAGE_SIZE, 'changeOrderPage');
 
             showOrderDetail(activeOrderId);
         }

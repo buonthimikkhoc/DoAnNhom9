@@ -235,7 +235,7 @@
 
             <!-- Ô tìm kiếm và nút thêm sách -->
             <div style="display: flex; gap: 10px; margin-bottom: 20px; max-width: 700px;">
-                <input type="text" id="adminBookSearch" class="inp" placeholder="Tìm theo tên sách, tác giả..." style="flex: 1; padding: 9px 14px; border: 1px solid #d9d4ca; border-radius: 4px; font-size: 14px;" onkeyup="renderBooks()">
+                <input type="text" id="adminBookSearch" class="inp" placeholder="Tìm theo tên sách, tác giả..." style="flex: 1; padding: 9px 14px; border: 1px solid #d9d4ca; border-radius: 4px; font-size: 14px;" onkeyup="renderBooks(true)">
                 <button type="button" class="btn" style="background: #1f5f5b; color: #fff; padding: 9px 24px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; white-space: nowrap; font-size: 14px;" onclick="focusAddForm()">+ Thêm sách</button>
             </div>
 
@@ -254,6 +254,9 @@
                     <!-- Rendered by JS -->
                 </tbody>
             </table>
+
+            <!-- Phân trang danh sách sách -->
+            <div id="adminBookPagination"></div>
         </main>
     </div>
 
@@ -422,7 +425,94 @@
             document.getElementById('fb_image_url').value = '';
         }
 
-        function renderBooks() {
+        var adminBookCurrentPage = 1;
+        var ADMIN_BOOK_PAGE_SIZE = 8;
+
+        function renderAdminPagination(containerId, currentPage, totalPages, totalItems, pageSize, onPageChangeFnName) {
+            var container = document.getElementById(containerId);
+            if (!container) return;
+            if (totalItems === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            var startItem = (currentPage - 1) * pageSize + 1;
+            var endItem = Math.min(currentPage * pageSize, totalItems);
+
+            var btnBase = 'min-width: 34px; height: 34px; padding: 0 8px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; border: 1px solid #cbd5e1; background: #ffffff; color: #334155;';
+            var btnActive = 'min-width: 34px; height: 34px; padding: 0 8px; border-radius: 6px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; cursor: default; border: 1.5px solid #1f5f5b; background: #1f5f5b; color: #ffffff; box-shadow: 0 2px 5px rgba(31,95,91,0.25);';
+            var btnDisabled = 'min-width: 34px; height: 34px; padding: 0 8px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; background: #f8fafc; color: #cbd5e1; cursor: not-allowed;';
+
+            var html = '<div class="admin-pagination" style="margin-top: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 4px; border-top: 1px solid #e7e2d8;">';
+            html += '<div style="font-size: 13px; color: #64748b; font-weight: 500;">Hiển thị <strong>' + startItem + ' - ' + endItem + '</strong> trên <strong>' + totalItems + '</strong> mục</div>';
+
+            if (totalPages <= 1) {
+                html += '</div>';
+                container.innerHTML = html;
+                return;
+            }
+
+            html += '<div style="display: flex; align-items: center; gap: 6px;">';
+
+            // Nút Đầu « và Trước ‹
+            if (currentPage > 1) {
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(1)" style="' + btnBase + '" title="Trang đầu">«</button>';
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(' + (currentPage - 1) + ')" style="' + btnBase + '" title="Trang trước">‹</button>';
+            } else {
+                html += '<button type="button" disabled style="' + btnDisabled + '">«</button>';
+                html += '<button type="button" disabled style="' + btnDisabled + '">‹</button>';
+            }
+
+            // Trang số
+            var startPage = Math.max(1, currentPage - 2);
+            var endPage = Math.min(totalPages, currentPage + 2);
+            if (endPage - startPage < 4) {
+                if (startPage === 1) endPage = Math.min(totalPages, startPage + 4);
+                else if (endPage === totalPages) startPage = Math.max(1, endPage - 4);
+            }
+
+            if (startPage > 1) {
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(1)" style="' + btnBase + '">1</button>';
+                if (startPage > 2) html += '<span style="color: #94a3b8; padding: 0 2px;">…</span>';
+            }
+
+            for (var p = startPage; p <= endPage; p++) {
+                if (p === currentPage) {
+                    html += '<button type="button" style="' + btnActive + '">' + p + '</button>';
+                } else {
+                    html += '<button type="button" onclick="' + onPageChangeFnName + '(' + p + ')" style="' + btnBase + '" onmouseover="this.style.borderColor=\'#1f5f5b\'; this.style.color=\'#1f5f5b\'" onmouseout="this.style.borderColor=\'#cbd5e1\'; this.style.color=\'#334155\'">' + p + '</button>';
+                }
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += '<span style="color: #94a3b8; padding: 0 2px;">…</span>';
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(' + totalPages + ')" style="' + btnBase + '">' + totalPages + '</button>';
+            }
+
+            // Nút Sau › và Cuối »
+            if (currentPage < totalPages) {
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(' + (currentPage + 1) + ')" style="' + btnBase + '" title="Trang sau">›</button>';
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(' + totalPages + ')" style="' + btnBase + '" title="Trang cuối">»</button>';
+            } else {
+                html += '<button type="button" disabled style="' + btnDisabled + '">›</button>';
+                html += '<button type="button" disabled style="' + btnDisabled + '">»</button>';
+            }
+
+            html += '</div></div>';
+            container.innerHTML = html;
+        }
+
+        function changeAdminBookPage(page) {
+            adminBookCurrentPage = page;
+            renderBooks(false);
+            var mainContent = document.querySelector('.admin-main');
+            if (mainContent) mainContent.scrollTop = 0;
+        }
+
+        function renderBooks(resetPage) {
+            if (resetPage === true) {
+                adminBookCurrentPage = 1;
+            }
             var books = DB.getBooks();
             var searchInp = document.getElementById('adminBookSearch');
             var q = searchInp ? (searchInp.value || '').toLowerCase().trim() : '';
@@ -435,16 +525,25 @@
             }
 
             var tbody = document.getElementById('adminBookTableBody');
+            var paginationEl = document.getElementById('adminBookPagination');
             if (!tbody) return;
 
             if (books.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 24px; color: #8a847b;">Không tìm thấy sách nào</td></tr>';
+                if (paginationEl) paginationEl.innerHTML = '';
                 return;
             }
 
+            var totalPages = Math.ceil(books.length / ADMIN_BOOK_PAGE_SIZE);
+            if (adminBookCurrentPage > totalPages) adminBookCurrentPage = totalPages;
+            if (adminBookCurrentPage < 1) adminBookCurrentPage = 1;
+
+            var startIndex = (adminBookCurrentPage - 1) * ADMIN_BOOK_PAGE_SIZE;
+            var pageBooks = books.slice(startIndex, startIndex + ADMIN_BOOK_PAGE_SIZE);
+
             var html = '';
-            for (var i = 0; i < books.length; i++) {
-                var b = books[i];
+            for (var i = 0; i < pageBooks.length; i++) {
+                var b = pageBooks[i];
                 var imgUrl = (typeof getBookImageUrl === 'function') ? getBookImageUrl(b.image) : (b.image || '');
                 var thumbContent = imgUrl ? 
                     '<img src="' + imgUrl + '" alt="' + (b.title || '').replace(/"/g, '&quot;') + '" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML=\'<span style=\\\'font-size: 20px;\\\'>' + (b.icon || '📖') + '</span>\';">' :
@@ -473,6 +572,8 @@
                 '</tr>';
             }
             tbody.innerHTML = html;
+
+            renderAdminPagination('adminBookPagination', adminBookCurrentPage, totalPages, books.length, ADMIN_BOOK_PAGE_SIZE, 'changeAdminBookPage');
         }
 
         // Tự động đồng bộ các danh mục thể loại từ DB

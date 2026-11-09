@@ -288,14 +288,101 @@
                     <!-- Rendered by JS -->
                 </tbody>
             </table>
+
+            <!-- Phân trang danh mục -->
+            <div id="categoryPagination"></div>
         </main>
     </div>
 
     <script>
         var currentTab = 'genres';
+        var catCurrentPage = 1;
+        var CAT_PAGE_SIZE = 8;
+
+        function renderAdminPagination(containerId, currentPage, totalPages, totalItems, pageSize, onPageChangeFnName) {
+            var container = document.getElementById(containerId);
+            if (!container) return;
+            if (totalItems === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            var startItem = (currentPage - 1) * pageSize + 1;
+            var endItem = Math.min(currentPage * pageSize, totalItems);
+
+            var btnBase = 'min-width: 34px; height: 34px; padding: 0 8px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; border: 1px solid #cbd5e1; background: #ffffff; color: #334155;';
+            var btnActive = 'min-width: 34px; height: 34px; padding: 0 8px; border-radius: 6px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; cursor: default; border: 1.5px solid #1f5f5b; background: #1f5f5b; color: #ffffff; box-shadow: 0 2px 5px rgba(31,95,91,0.25);';
+            var btnDisabled = 'min-width: 34px; height: 34px; padding: 0 8px; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; background: #f8fafc; color: #cbd5e1; cursor: not-allowed;';
+
+            var html = '<div class="admin-pagination" style="margin-top: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 4px; border-top: 1px solid #e7e2d8;">';
+            html += '<div style="font-size: 13px; color: #64748b; font-weight: 500;">Hiển thị <strong>' + startItem + ' - ' + endItem + '</strong> trên <strong>' + totalItems + '</strong> mục</div>';
+
+            if (totalPages <= 1) {
+                html += '</div>';
+                container.innerHTML = html;
+                return;
+            }
+
+            html += '<div style="display: flex; align-items: center; gap: 6px;">';
+
+            // Nút Đầu « và Trước ‹
+            if (currentPage > 1) {
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(1)" style="' + btnBase + '" title="Trang đầu">«</button>';
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(' + (currentPage - 1) + ')" style="' + btnBase + '" title="Trang trước">‹</button>';
+            } else {
+                html += '<button type="button" disabled style="' + btnDisabled + '">«</button>';
+                html += '<button type="button" disabled style="' + btnDisabled + '">‹</button>';
+            }
+
+            // Trang số
+            var startPage = Math.max(1, currentPage - 2);
+            var endPage = Math.min(totalPages, currentPage + 2);
+            if (endPage - startPage < 4) {
+                if (startPage === 1) endPage = Math.min(totalPages, startPage + 4);
+                else if (endPage === totalPages) startPage = Math.max(1, endPage - 4);
+            }
+
+            if (startPage > 1) {
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(1)" style="' + btnBase + '">1</button>';
+                if (startPage > 2) html += '<span style="color: #94a3b8; padding: 0 2px;">…</span>';
+            }
+
+            for (var p = startPage; p <= endPage; p++) {
+                if (p === currentPage) {
+                    html += '<button type="button" style="' + btnActive + '">' + p + '</button>';
+                } else {
+                    html += '<button type="button" onclick="' + onPageChangeFnName + '(' + p + ')" style="' + btnBase + '" onmouseover="this.style.borderColor=\'#1f5f5b\'; this.style.color=\'#1f5f5b\'" onmouseout="this.style.borderColor=\'#cbd5e1\'; this.style.color=\'#334155\'">' + p + '</button>';
+                }
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += '<span style="color: #94a3b8; padding: 0 2px;">…</span>';
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(' + totalPages + ')" style="' + btnBase + '">' + totalPages + '</button>';
+            }
+
+            // Nút Sau › và Cuối »
+            if (currentPage < totalPages) {
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(' + (currentPage + 1) + ')" style="' + btnBase + '" title="Trang sau">›</button>';
+                html += '<button type="button" onclick="' + onPageChangeFnName + '(' + totalPages + ')" style="' + btnBase + '" title="Trang cuối">»</button>';
+            } else {
+                html += '<button type="button" disabled style="' + btnDisabled + '">›</button>';
+                html += '<button type="button" disabled style="' + btnDisabled + '">»</button>';
+            }
+
+            html += '</div></div>';
+            container.innerHTML = html;
+        }
+
+        function changeCategoryPage(page) {
+            catCurrentPage = page;
+            renderCategories();
+            var mainContent = document.querySelector('.admin-main');
+            if (mainContent) mainContent.scrollTop = 0;
+        }
 
         function switchCategoryTab(tab, btn) {
             currentTab = tab;
+            catCurrentPage = 1;
             document.getElementById('pillGenre').classList.remove('active');
             document.getElementById('pillAuthor').classList.remove('active');
             document.getElementById('pillPub').classList.remove('active');
@@ -336,15 +423,24 @@
 
             var list = allCats[currentTab] || [];
             var tbody = document.getElementById('categoryTableBody');
+            var paginationEl = document.getElementById('categoryPagination');
 
             if (list.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 24px; color: #8a847b;">Chưa có dữ liệu danh mục</td></tr>';
+                if (paginationEl) paginationEl.innerHTML = '';
                 return;
             }
 
+            var totalPages = Math.ceil(list.length / CAT_PAGE_SIZE);
+            if (catCurrentPage > totalPages) catCurrentPage = totalPages;
+            if (catCurrentPage < 1) catCurrentPage = 1;
+
+            var startIndex = (catCurrentPage - 1) * CAT_PAGE_SIZE;
+            var pageList = list.slice(startIndex, startIndex + CAT_PAGE_SIZE);
+
             var html = '';
-            for (var i = 0; i < list.length; i++) {
-                var item = list[i];
+            for (var i = 0; i < pageList.length; i++) {
+                var item = pageList[i];
                 html += '<tr>' +
                     '<td style="font-weight: 500;">' + item.code + '</td>' +
                     '<td style="font-weight: 600;">' + item.name + '</td>' +
@@ -356,6 +452,8 @@
                 '</tr>';
             }
             tbody.innerHTML = html;
+
+            renderAdminPagination('categoryPagination', catCurrentPage, totalPages, list.length, CAT_PAGE_SIZE, 'changeCategoryPage');
         }
 
         function addCategory(e) {
@@ -381,6 +479,7 @@
             DB.saveCategories(allCats);
             inp.value = '';
             showToast('Đã thêm "' + val + '" (' + newCode + ') thành công!');
+            catCurrentPage = Math.ceil(allCats[currentTab].length / CAT_PAGE_SIZE);
             renderCategories();
         }
 
