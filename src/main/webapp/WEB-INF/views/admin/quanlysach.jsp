@@ -326,26 +326,35 @@
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">Thể loại</label>
-                        <select id="fb_cat" class="inp" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: #fff; outline: none;">
-                            <option value="Văn học">Văn học</option>
-                            <option value="Kinh tế">Kinh tế</option>
-                            <option value="Thiếu nhi">Thiếu nhi</option>
-                            <option value="Kỹ năng">Kỹ năng</option>
-                            <option value="Công nghệ">Công nghệ</option>
-                            <option value="Lịch sử">Lịch sử</option>
-                            <option value="Khoa học">Khoa học</option>
-                        </select>
-                    </div>
-
-                    <div>
                         <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">Số lượng kho <span style="color: #ef4444;">*</span></label>
                         <input type="number" id="fb_stock" class="inp" placeholder="Ví dụ: 20" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none;" required>
                     </div>
 
                     <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">Tác giả</label>
-                        <input type="text" id="fb_author" class="inp" placeholder="Ví dụ: Paulo Coelho" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">
+                            Thể loại <span style="color: #1f5f5b; font-weight: 500; font-size: 11.5px;">(từ QL Danh mục)</span>
+                        </label>
+                        <select id="fb_cat" class="inp" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: #fff; outline: none;" onchange="handleSelectCustomToggle(this, 'fb_cat_custom')">
+                        </select>
+                        <input type="text" id="fb_cat_custom" class="inp" placeholder="Nhập tên thể loại mới..." style="display: none; width: 100%; margin-top: 6px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">
+                            Tác giả <span style="color: #1f5f5b; font-weight: 500; font-size: 11.5px;">(từ QL Danh mục)</span>
+                        </label>
+                        <select id="fb_author" class="inp" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: #fff; outline: none;" onchange="handleSelectCustomToggle(this, 'fb_author_custom')">
+                        </select>
+                        <input type="text" id="fb_author_custom" class="inp" placeholder="Nhập tên tác giả mới..." style="display: none; width: 100%; margin-top: 6px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+                    </div>
+
+                    <div style="grid-column: 1 / -1;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">
+                            Nhà xuất bản <span style="color: #1f5f5b; font-weight: 500; font-size: 11.5px;">(từ QL Danh mục)</span>
+                        </label>
+                        <select id="fb_publisher" class="inp" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: #fff; outline: none;" onchange="handleSelectCustomToggle(this, 'fb_publisher_custom')">
+                        </select>
+                        <input type="text" id="fb_publisher_custom" class="inp" placeholder="Nhập tên nhà xuất bản mới..." style="display: none; width: 100%; margin-top: 6px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
                     </div>
                 </div>
             </div>
@@ -558,7 +567,7 @@
                             '</div>' +
                             '<div>' +
                                 '<div style="color: #1e293b; font-size: 14px;">' + b.title + '</div>' +
-                                '<div style="font-size: 12px; color: #64748b; font-weight: 400; margin-top: 2px;">' + b.author + ' · <span style="color: #1f5f5b; font-weight: 500;">' + b.category + '</span></div>' +
+                                '<div style="font-size: 12px; color: #64748b; font-weight: 400; margin-top: 2px;">' + b.author + ' · <span style="color: #1f5f5b; font-weight: 500;">' + b.category + '</span>' + (b.publisher ? (' · <span>' + b.publisher + '</span>') : '') + '</div>' +
                             '</div>' +
                         '</div>' +
                     '</td>' +
@@ -576,31 +585,93 @@
             renderAdminPagination('adminBookPagination', adminBookCurrentPage, totalPages, books.length, ADMIN_BOOK_PAGE_SIZE, 'changeAdminBookPage');
         }
 
-        // Tự động đồng bộ các danh mục thể loại từ DB
-        function populateCategorySelect(selectedCategory) {
-            var select = document.getElementById('fb_cat');
-            if (!select) return;
+        // Xử lý bật/tắt ô nhập tùy chỉnh khi chọn "+ Thêm mới..."
+        function handleSelectCustomToggle(selectEl, customInputId) {
+            var inp = document.getElementById(customInputId);
+            if (!inp) return;
+            if (selectEl.value === '__custom__') {
+                inp.style.display = 'block';
+                inp.value = '';
+                inp.focus();
+            } else {
+                inp.style.display = 'none';
+                inp.value = '';
+            }
+        }
+
+        // Tự động đồng bộ cả 3 danh mục: Thể loại, Tác giả, Nhà xuất bản từ DB
+        function populateAllCategorySelects(selectedCat, selectedAuthor, selectedPub) {
             var cats = DB.getCategories();
             var genres = (cats && cats.genres) ? cats.genres : [];
-            var html = '';
-            var hasSelected = false;
-            for (var i = 0; i < genres.length; i++) {
-                var name = genres[i].name || genres[i];
-                var sel = (selectedCategory && selectedCategory === name) ? ' selected' : '';
-                if (sel) hasSelected = true;
-                html += '<option value="' + name.replace(/"/g, '&quot;') + '"' + sel + '>' + name + '</option>';
+            var authors = (cats && cats.authors) ? cats.authors : [];
+            var publishers = (cats && cats.publishers) ? cats.publishers : [];
+
+            // 1. Đồng bộ Thể loại
+            var catSel = document.getElementById('fb_cat');
+            if (catSel) {
+                var html = '';
+                var hasSel = false;
+                for (var i = 0; i < genres.length; i++) {
+                    var name = genres[i].name || genres[i];
+                    var isSelected = (selectedCat && selectedCat === name) ? ' selected' : '';
+                    if (isSelected) hasSel = true;
+                    html += '<option value="' + name.replace(/"/g, '&quot;') + '"' + isSelected + '>' + name + '</option>';
+                }
+                if (selectedCat && !hasSel) {
+                    html += '<option value="' + selectedCat.replace(/"/g, '&quot;') + '" selected>' + selectedCat + '</option>';
+                }
+                html += '<option value="__custom__">+ Thêm thể loại mới...</option>';
+                catSel.innerHTML = html;
+                var customInp = document.getElementById('fb_cat_custom');
+                if (customInp) customInp.style.display = 'none';
             }
-            if (selectedCategory && !hasSelected) {
-                html += '<option value="' + selectedCategory.replace(/"/g, '&quot;') + '" selected>' + selectedCategory + '</option>';
+
+            // 2. Đồng bộ Tác giả
+            var authorSel = document.getElementById('fb_author');
+            if (authorSel) {
+                var html = '';
+                var hasSel = false;
+                for (var i = 0; i < authors.length; i++) {
+                    var name = authors[i].name || authors[i];
+                    var isSelected = (selectedAuthor && selectedAuthor === name) ? ' selected' : '';
+                    if (isSelected) hasSel = true;
+                    html += '<option value="' + name.replace(/"/g, '&quot;') + '"' + isSelected + '>' + name + '</option>';
+                }
+                if (selectedAuthor && !hasSel) {
+                    html += '<option value="' + selectedAuthor.replace(/"/g, '&quot;') + '" selected>' + selectedAuthor + '</option>';
+                }
+                html += '<option value="__custom__">+ Thêm tác giả mới...</option>';
+                authorSel.innerHTML = html;
+                var customInp = document.getElementById('fb_author_custom');
+                if (customInp) customInp.style.display = 'none';
             }
-            select.innerHTML = html;
+
+            // 3. Đồng bộ Nhà xuất bản
+            var pubSel = document.getElementById('fb_publisher');
+            if (pubSel) {
+                var html = '';
+                var hasSel = false;
+                for (var i = 0; i < publishers.length; i++) {
+                    var name = publishers[i].name || publishers[i];
+                    var isSelected = (selectedPub && selectedPub === name) ? ' selected' : '';
+                    if (isSelected) hasSel = true;
+                    html += '<option value="' + name.replace(/"/g, '&quot;') + '"' + isSelected + '>' + name + '</option>';
+                }
+                if (selectedPub && !hasSel) {
+                    html += '<option value="' + selectedPub.replace(/"/g, '&quot;') + '" selected>' + selectedPub + '</option>';
+                }
+                html += '<option value="__custom__">+ Thêm NXB mới...</option>';
+                pubSel.innerHTML = html;
+                var customInp = document.getElementById('fb_publisher_custom');
+                if (customInp) customInp.style.display = 'none';
+            }
         }
 
         // Mở Modal Popup Thêm sách mới
         function openAddBookModal() {
             closeBookModal();
             removeBookImage();
-            populateCategorySelect();
+            populateAllCategorySelects();
             document.getElementById('bookModalTitle').innerText = 'Thêm sách mới';
             document.getElementById('bookModal').style.display = 'flex';
             setTimeout(function() {
@@ -622,8 +693,10 @@
             document.getElementById('fb_title').value = '';
             document.getElementById('fb_price').value = '';
             document.getElementById('fb_stock').value = '';
-            document.getElementById('fb_author').value = '';
             removeBookImage();
+            var c1 = document.getElementById('fb_cat_custom'); if (c1) { c1.style.display = 'none'; c1.value = ''; }
+            var c2 = document.getElementById('fb_author_custom'); if (c2) { c2.style.display = 'none'; c2.value = ''; }
+            var c3 = document.getElementById('fb_publisher_custom'); if (c3) { c3.style.display = 'none'; c3.value = ''; }
         }
 
         // Mở Modal Popup Sửa sách
@@ -631,12 +704,11 @@
             var b = DB.getBookById(id);
             if (!b) return;
 
-            populateCategorySelect(b.category || 'Văn học');
+            populateAllCategorySelects(b.category || 'Văn học', b.author || '', b.publisher || 'NXB Trẻ');
             document.getElementById('edit_book_id').value = b.id;
             document.getElementById('fb_title').value = b.title || '';
             document.getElementById('fb_price').value = b.price || '';
             document.getElementById('fb_stock').value = b.stock || '';
-            document.getElementById('fb_author').value = b.author || '';
 
             // Nạp ảnh hiện tại nếu có
             if (b.image) {
@@ -664,9 +736,25 @@
             var editId = document.getElementById('edit_book_id').value;
             var title = (document.getElementById('fb_title').value || '').trim();
             var price = parseInt(document.getElementById('fb_price').value, 10);
-            var cat = document.getElementById('fb_cat').value;
             var stock = parseInt(document.getElementById('fb_stock').value, 10);
-            var author = (document.getElementById('fb_author').value || '').trim() || 'Nhiều tác giả';
+
+            var cat = document.getElementById('fb_cat').value;
+            if (cat === '__custom__') {
+                cat = (document.getElementById('fb_cat_custom').value || '').trim();
+            }
+            if (!cat) cat = 'Văn học';
+
+            var author = document.getElementById('fb_author').value;
+            if (author === '__custom__') {
+                author = (document.getElementById('fb_author_custom').value || '').trim();
+            }
+            if (!author) author = 'Nhiều tác giả';
+
+            var publisher = document.getElementById('fb_publisher').value;
+            if (publisher === '__custom__') {
+                publisher = (document.getElementById('fb_publisher_custom').value || '').trim();
+            }
+            if (!publisher) publisher = 'NXB Trẻ';
 
             if (!title) {
                 alert('Vui lòng nhập tên tựa sách!');
@@ -682,6 +770,25 @@
                 stock = 10;
             }
 
+            // Tự động đồng bộ các danh mục mới (nếu người dùng nhập mới) vào DB.getCategories()
+            var allCats = DB.getCategories();
+            var catChanged = false;
+            if (cat && !allCats.genres.some(function(g) { return (g.name || g) === cat; })) {
+                allCats.genres.push({ code: 'TL' + String(allCats.genres.length + 1).padStart(2, '0'), name: cat, count: 0 });
+                catChanged = true;
+            }
+            if (author && author !== 'Nhiều tác giả' && !allCats.authors.some(function(a) { return (a.name || a) === author; })) {
+                allCats.authors.push({ code: 'TG' + String(allCats.authors.length + 1).padStart(2, '0'), name: author, count: 0 });
+                catChanged = true;
+            }
+            if (publisher && !allCats.publishers.some(function(p) { return (p.name || p) === publisher; })) {
+                allCats.publishers.push({ code: 'NXB' + String(allCats.publishers.length + 1).padStart(2, '0'), name: publisher, count: 0 });
+                catChanged = true;
+            }
+            if (catChanged) {
+                DB.saveCategories(allCats);
+            }
+
             if (editId) {
                 var updatePayload = {
                     id: editId,
@@ -689,7 +796,8 @@
                     price: price,
                     category: cat,
                     stock: stock,
-                    author: author
+                    author: author,
+                    publisher: publisher
                 };
                 updatePayload.image = currentBookImageData;
                 DB.updateBook(updatePayload);
@@ -701,7 +809,7 @@
                     id: nextId,
                     title: title,
                     author: author,
-                    publisher: 'NXB Trẻ',
+                    publisher: publisher,
                     category: cat,
                     price: price,
                     oldPrice: price + 15000,
@@ -714,6 +822,7 @@
                 newBook.image = currentBookImageData || '';
                 DB.addBook(newBook);
                 showToast('Đã thêm cuốn sách ' + nextId + ' thành công!');
+                adminBookCurrentPage = 1;
             }
 
             closeBookModal();
@@ -738,7 +847,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             renderBooks();
-            populateCategorySelect();
+            populateAllCategorySelects();
         });
     </script>
 </body>
