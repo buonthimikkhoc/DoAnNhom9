@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đồ Án Nhóm 9 - Quản Lý Bán Sách Trực Tuyến</title>
+    <style>
+        :root {
+            --ac: #1f5f5b;
+            --acl: #d8ebe8;
+            --bg: #f5f7f6;
+            --card: #ffffff;
+            --ink: #1e293b;
+            --mute: #64748b;
+            --line: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            margin: 0;
+            padding: 30px 20px;
+        }
+        .header {
+            max-width: 1100px;
+            margin: 0 auto 30px;
+            background: var(--ac);
+            color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(31,95,91,0.2);
+        }
+        .header h1 { margin: 0 0 8px; font-size: 26px; }
+        .header p { margin: 0; opacity: 0.9; font-size: 14.5px; }
+        .grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+            border-color: var(--ac);
+        }
+        .badge {
+            display: inline-block;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            width: fit-content;
+        }
+        .badge-common { background: #e0f2fe; color: #0284c7; }
+        .badge-client { background: var(--acl); color: var(--ac); }
+        .badge-admin { background: #fee2e2; color: #b91c1c; }
+        .title {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0 0 6px;
+        }
+        .file {
+            font-family: monospace;
+            font-size: 12.5px;
+            color: var(--mute);
+            margin-bottom: 12px;
+        }
+        .desc {
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .btn {
+            display: inline-block;
+            background: var(--ac);
+            color: #fff;
+            padding: 9px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            text-align: center;
+        }
+        .btn:hover {
+            background: #174845;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>📚 ĐỒ ÁN NHÓM 9: QUẢN LÝ BÁN SÁCH TRỰC TUYẾN</h1>
+        <p>Dự án Eclipse Dynamic Web Project hoàn chỉnh với đầy đủ 11 màn hình JSP theo đúng wireframe thiết kế.</p>
+    </div>
+
+    <div class="grid">
+        <!-- 1 -->
+        <div class="card">
+            <div>
+                <span class="badge badge-common">Dùng chung</span>
+                <h2 class="title">1. Đăng nhập</h2>
+                <div class="file">WebContent/login.jsp</div>
+                <div class="desc">Form đăng nhập đẹp mắt, hỗ trợ nút đăng nhập nhanh Khách / Quản trị viên để demo.</div>
+            </div>
+            <a href="WebContent/login.jsp" class="btn" target="_blank">Mở màn hình 1 ↗</a>
+        </div>
+
+        <!-- 2 -->
+        <div class="card">
+            <div>
+                <span class="badge badge-common">Dùng chung</span>
+                <h2 class="title">2. Đăng ký</h2>
+                <div class="file">WebContent/register.jsp</div>
+                <div class="desc">Tạo tài khoản mới với các trường họ tên, email, số điện thoại, mật khẩu.</div>
+            </div>
+            <a href="WebContent/register.jsp" class="btn" target="_blank">Mở màn hình 2 ↗</a>
+        </div>
+
+        <!-- 3 -->
+        <div class="card">
+            <div>
+                <span class="badge badge-client">Khách hàng</span>
+                <h2 class="title">3. Trang chủ</h2>
+                <div class="file">WebContent/trangchu.jsp</div>
+                <div class="desc">Thanh tìm kiếm, bộ lọc chip thể loại, danh mục sách grid card sinh động, phân trang.</div>
+            </div>
+            <a href="WebContent/trangchu.jsp" class="btn" target="_blank">Mở màn hình 3 ↗</a>
+        </div>
+
+        <!-- 4 -->
+        <div class="card">
+            <div>
+                <span class="badge badge-client">Khách hàng</span>
+                <h2 class="title">4. Chi tiết sách</h2>
+                <div class="file">WebContent/chitietsach.jsp</div>
+                <div class="desc">Xem bìa sách, giá bán, tác giả, tồn kho, chọn số lượng, thêm giỏ và mua ngay.</div>
+            </div>
+            <a href="WebContent/chitietsach.jsp" class="btn" target="_blank">Mở màn hình 4 ↗</a>
+        </div>
+
+        <!-- 5 -->
+        <div class="card">
+            <div>
+                <span class="badge badge-client">Khách hàng</span>
+                <h2 class="title">5. Giỏ hàng</h2>
+                <div class="file">WebContent/giohang.jsp</div>
+                <div class="desc">Bảng giỏ hàng tự động cập nhật tổng tiền khi tăng giảm số lượng hoặc xóa sách.</div>
+            </div>
+            <a href="WebContent/giohang.jsp" class="btn" target="_blank">Mở màn hình 5 ↗</a>
+        </div>
+
+        <!-- 6 -->
+        <div class="card">
+            <div>
+                <span class="badge badge-client">Khách hàng</span>
+                <h2 class="title">6. Thanh toán & Đặt hàng</h2>
+                <div class="file">WebContent/thanhtoan.jsp</div>
+                <div class="desc">Điền địa chỉ người nhận, chọn phương thức COD/Chuyển khoản, tổng tiền kèm phí ship.</div>
+            </div>
+            <a href="WebContent/thanhtoan.jsp" class="btn" target="_blank">Mở màn hình 6 ↗</a>
+        </div>
+
+        <!-- 7 -->
+        <div class="card">
+            <div>
+                <span class="badge badge-client">Khách hàng</span>
+                <h2 class="title">7. Lịch sử đơn hàng</h2>
+                <div class="file">WebContent/donhang.jsp</div>
+                <div class="desc">Danh sách đơn hàng, lọc theo trạng thái, xem chi tiết tiến trình giao hàng.</div>
+            </div>
+            <a href="WebContent/donhang.jsp" class="btn" target="_blank">Mở màn hình 7 ↗</a>
+        </div>
+
+        <!-- 8 -->
+        <div class="card">
+            <div>
+                <span class="badge badge-client">Khách hàng</span>
+                <h2 class="title">8. Thông tin tài khoản</h2>
+                <div class="file">WebContent/taikhoan.jsp</div>
+                <div class="desc">Chỉnh sửa hồ sơ cá nhân và đổi mật khẩu bảo mật tài khoản.</div>
+            </div>
+            <a href="WebContent/taikhoan.jsp" class="btn" target="_blank">Mở màn hình 8 ↗</a>
+        </div>
+
+        <!-- 9 -->
+        <div class="card">
+            <div>
+                <span class="badge badge-admin">Quản trị viên</span>
+                <h2 class="title">9. Quản lý sách</h2>
+                <div class="file">WebContent/admin/quanlysach.jsp</div>
+                <div class="desc">Bảng quản trị sách, tìm kiếm, sửa xóa sách, modal popup thêm sách mới.</div>
+            </div>
+            <a href="WebContent/admin/quanlysach.jsp" class="btn" target="_blank">Mở màn hình 9 ↗</a>
+        </div>
+
+        <!-- 10 -->
+        <div class="card">
+            <div>
+                <span class="badge badge-admin">Quản trị viên</span>
+                <h2 class="title">10. Quản lý danh mục</h2>
+                <div class="file">WebContent/admin/quanlydanhmuc.jsp</div>
+                <div class="desc">Quản lý thể loại, tác giả, nhà xuất bản, thêm và sửa trực tiếp trên bảng.</div>
+            </div>
+            <a href="WebContent/admin/quanlydanhmuc.jsp" class="btn" target="_blank">Mở màn hình 10 ↗</a>
+        </div>
+
+        <!-- 11 -->
+        <div class="card">
+            <div>
+                <span class="badge badge-admin">Quản trị viên</span>
+                <h2 class="title">11. Quản lý đơn hàng</h2>
+                <div class="file">WebContent/admin/quanlydonhang.jsp</div>
+                <div class="desc">Cập nhật trạng thái đơn (Chờ xử lý, Đang giao, Hoàn tất), hủy đơn, xem chi tiết.</div>
+            </div>
+            <a href="WebContent/admin/quanlydonhang.jsp" class="btn" target="_blank">Mở màn hình 11 ↗</a>
+        </div>
+    </div>
+
+</body>
+</html>

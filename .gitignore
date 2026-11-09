@@ -1,0 +1,20 @@
+# Maven
+target/
+*.war
+*.ear
+
+# Eclipse
+.metadata/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.recommenders
+
+# OS
+.DS_Store
+Thumbs.db
