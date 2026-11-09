@@ -475,10 +475,31 @@
             tbody.innerHTML = html;
         }
 
+        // Tự động đồng bộ các danh mục thể loại từ DB
+        function populateCategorySelect(selectedCategory) {
+            var select = document.getElementById('fb_cat');
+            if (!select) return;
+            var cats = DB.getCategories();
+            var genres = (cats && cats.genres) ? cats.genres : [];
+            var html = '';
+            var hasSelected = false;
+            for (var i = 0; i < genres.length; i++) {
+                var name = genres[i].name || genres[i];
+                var sel = (selectedCategory && selectedCategory === name) ? ' selected' : '';
+                if (sel) hasSelected = true;
+                html += '<option value="' + name.replace(/"/g, '&quot;') + '"' + sel + '>' + name + '</option>';
+            }
+            if (selectedCategory && !hasSelected) {
+                html += '<option value="' + selectedCategory.replace(/"/g, '&quot;') + '" selected>' + selectedCategory + '</option>';
+            }
+            select.innerHTML = html;
+        }
+
         // Mở Modal Popup Thêm sách mới
         function openAddBookModal() {
             closeBookModal();
             removeBookImage();
+            populateCategorySelect();
             document.getElementById('bookModalTitle').innerText = 'Thêm sách mới';
             document.getElementById('bookModal').style.display = 'flex';
             setTimeout(function() {
@@ -509,10 +530,10 @@
             var b = DB.getBookById(id);
             if (!b) return;
 
+            populateCategorySelect(b.category || 'Văn học');
             document.getElementById('edit_book_id').value = b.id;
             document.getElementById('fb_title').value = b.title || '';
             document.getElementById('fb_price').value = b.price || '';
-            document.getElementById('fb_cat').value = b.category || 'Văn học';
             document.getElementById('fb_stock').value = b.stock || '';
             document.getElementById('fb_author').value = b.author || '';
 
@@ -616,6 +637,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             renderBooks();
+            populateCategorySelect();
         });
     </script>
 </body>

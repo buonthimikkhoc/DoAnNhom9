@@ -707,7 +707,9 @@ const DB = {
         }
       }
       localStorage.setItem('bs_books', JSON.stringify(books));
-      localStorage.setItem('bs_categories', JSON.stringify(INITIAL_CATEGORIES));
+      if (!localStorage.getItem('bs_categories')) {
+        localStorage.setItem('bs_categories', JSON.stringify(INITIAL_CATEGORIES));
+      }
       localStorage.setItem('bs_seed_ver', SEED_VERSION);
       return books;
     }
@@ -1404,7 +1406,24 @@ function handleBuyNowHome(bookId) {
   }, 250);
 }
 
+function renderHomeCategoryChips() {
+  const container = document.getElementById('homeCategoryChips');
+  if (!container) return;
+  const cats = DB.getCategories();
+  const genres = (cats && cats.genres) ? cats.genres : [];
+
+  let html = '<button class="chip ' + (homeCurrentCategory === '' ? 'on' : '') + '" onclick="filterCategory(\'\', this)">Tất cả</button>';
+  for (let i = 0; i < genres.length; i++) {
+    const g = genres[i];
+    const name = g.name || g;
+    const isOn = homeCurrentCategory === name ? 'on' : '';
+    html += '<button class="chip ' + isOn + '" onclick="filterCategory(\'' + name.replace(/'/g, "\\'") + '\', this)">' + name + '</button>';
+  }
+  container.innerHTML = html;
+}
+
 function initHomePage() {
+  renderHomeCategoryChips();
   const searchInput = document.getElementById('homeSearchInput');
   if (searchInput) {
     searchInput.addEventListener('input', function() {

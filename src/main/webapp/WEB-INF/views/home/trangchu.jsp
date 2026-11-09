@@ -93,7 +93,7 @@
         <p>© 2026 BookStore - Đồ án tốt nghiệp / Môn học Eclipse Web - Nhóm 9</p>
     </footer>
 
-    <script src="${pageContext.request.contextPath}/resources/js/main.js?v=3"></script>
+    <script src="${pageContext.request.contextPath}/resources/js/main.js?v=20261109"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             initHomePage();
