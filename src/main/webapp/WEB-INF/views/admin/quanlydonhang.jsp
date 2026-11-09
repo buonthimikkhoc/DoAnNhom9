@@ -258,10 +258,12 @@
             <table class="wire-table">
                 <thead>
                     <tr>
-                        <th style="width: 110px;">Mã</th>
-                        <th>Khách</th>
-                        <th style="width: 160px;">Tổng</th>
-                        <th style="width: 170px; text-align: right;">Trạng thái</th>
+                        <th style="width: 85px;">Mã đơn</th>
+                        <th style="width: 160px;">Khách hàng</th>
+                        <th>Sản phẩm đặt mua (Sách & Số lượng)</th>
+                        <th style="width: 120px; text-align: right;">Tổng tiền</th>
+                        <th style="width: 140px; text-align: center;">Trạng thái</th>
+                        <th style="width: 100px; text-align: right;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="adminOrderTableBody">
@@ -273,15 +275,7 @@
             <div id="orderPagination"></div>
 
             <!-- Khung chi tiết đơn hàng được chọn theo Wireframe -->
-            <div id="orderDetailBox" style="margin-top: 24px; padding: 18px 22px; border: 1px solid #d9d4ca; border-radius: 8px; background: #fafaf8; border-left: 4px solid #1f5f5b;">
-                <div class="b" id="detailOrderTitle" style="font-size: 15px; font-weight: 700; margin-bottom: 8px; color: #23201c;">Chi tiết #1024</div>
-                <div id="detailOrderItems" style="font-size: 13.5px; color: #4b5563; margin-bottom: 14px; line-height: 1.6;">
-                    Cây Cam Ngọt Của Tôi ×1, Nhà Giả Kim (Tái Bản 2026) ×2 · SĐT: 0987 654 321
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="button" class="btn" style="background: #1f5f5b; color: #fff; padding: 8px 18px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 13px;" onclick="saveSelectedOrderStatus()">Cập nhật trạng thái</button>
-                    <button type="button" class="btn" style="background: #b3412f; color: #fff; padding: 8px 18px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 13px;" onclick="cancelSelectedOrder()">Hủy đơn</button>
-                </div>
+            <div id="orderDetailBox" style="margin-top: 24px; padding: 22px 24px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fafaf8; border-left: 5px solid #1f5f5b; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
             </div>
         </main>
     </div>
@@ -468,18 +462,44 @@
                 var o = pageOrders[i];
                 var customerName = o.customer ? o.customer.split(' ').slice(-2).join(' ') : 'Khách';
                 var isSelected = o.id === activeOrderId;
+                var totalQty = (o.items || []).reduce(function(sum, it) { return sum + (it.qty || 1); }, 0);
                 
+                var bookNamesSummary = (o.items || []).map(function(it) {
+                    return '<div style="font-size: 12.5px; color: #334155; line-height: 1.4; display: flex; align-items: baseline; gap: 6px;">' +
+                        '<span style="color: #1f5f5b; font-size: 11px;">📖</span>' +
+                        '<span style="font-weight: 500;">' + it.title + '</span>' +
+                        '<strong style="color: #1f5f5b; white-space: nowrap;">×' + (it.qty || 1) + '</strong>' +
+                    '</div>';
+                }).join('');
+
                 html += '<tr style="' + (isSelected ? 'background: #eef7f6;' : '') + '; cursor: pointer;" onclick="selectOrder(\'' + o.id + '\')">' +
-                    '<td style="font-weight: 700; color: #1f5f5b;">' + o.id + '</td>' +
-                    '<td><strong>' + (o.customer || customerName) + '</strong></td>' +
-                    '<td style="font-weight: 700; color: #1f5f5b;">' + formatMoney(o.total) + '</td>' +
-                    '<td style="text-align: right;" onclick="event.stopPropagation()">' +
+                    '<td style="font-weight: 700; color: #1f5f5b; vertical-align: top; padding-top: 14px;">' + o.id + '</td>' +
+                    '<td style="vertical-align: top; padding-top: 14px;">' +
+                        '<strong style="color: #1e293b;">' + (o.customer || customerName) + '</strong>' +
+                        '<div style="font-size: 11.5px; color: #64748b; margin-top: 3px;">📅 ' + (o.date || 'Hôm nay') + '</div>' +
+                    '</td>' +
+                    '<td style="vertical-align: top; padding: 12px 14px;">' +
+                        '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">' +
+                            '<span style="background: #e6f0ef; color: #1f5f5b; padding: 2px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700;">' +
+                                '📚 ' + totalQty + ' cuốn sách' +
+                            '</span>' +
+                            '<span style="font-size: 12px; color: #64748b;">(' + (o.items || []).length + ' tựa sách)</span>' +
+                        '</div>' +
+                        '<div style="display: flex; flex-direction: column; gap: 4px;">' +
+                            bookNamesSummary +
+                        '</div>' +
+                    '</td>' +
+                    '<td style="font-weight: 700; color: #1f5f5b; text-align: right; vertical-align: top; padding-top: 14px;">' + formatMoney(o.total) + '</td>' +
+                    '<td style="text-align: center; vertical-align: top; padding-top: 10px;" onclick="event.stopPropagation()">' +
                         '<select class="inp" style="padding: 6px 10px; font-size: 13px; border-radius: 4px; border: 1px solid #d9d4ca; background: #fff;" onchange="updateOrderStatusInline(\'' + o.id + '\', this.value)">' +
                             '<option value="pending"' + (o.status === 'pending' ? ' selected' : '') + '>Chờ xử lý ▾</option>' +
                             '<option value="shipping"' + (o.status === 'shipping' ? ' selected' : '') + '>Đang giao ▾</option>' +
                             '<option value="done"' + (o.status === 'done' ? ' selected' : '') + '>Hoàn tất ▾</option>' +
                             '<option value="cancelled"' + (o.status === 'cancelled' ? ' selected' : '') + '>Đã hủy ▾</option>' +
                         '</select>' +
+                    '</td>' +
+                    '<td style="text-align: right; vertical-align: top; padding-top: 12px;" onclick="event.stopPropagation()">' +
+                        '<button type="button" onclick="selectOrder(\'' + o.id + '\', true)" style="background: #1f5f5b; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;" onmouseover="this.style.background=\'#184b48\'" onmouseout="this.style.background=\'#1f5f5b\'">Chi tiết ▾</button>' +
                     '</td>' +
                 '</tr>';
             }
@@ -490,9 +510,15 @@
             showOrderDetail(activeOrderId);
         }
 
-        function selectOrder(orderId) {
+        function selectOrder(orderId, scrollToDetail) {
             activeOrderId = orderId;
             renderOrders();
+            if (scrollToDetail) {
+                var detailBox = document.getElementById('orderDetailBox');
+                if (detailBox) {
+                    detailBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
         }
 
         function showOrderDetail(orderId) {
@@ -502,16 +528,100 @@
                 o = orders[0];
                 activeOrderId = o.id;
             }
-            if (!o) return;
+            var box = document.getElementById('orderDetailBox');
+            if (!box) return;
+            if (!o) {
+                box.style.display = 'none';
+                return;
+            }
+            box.style.display = 'block';
 
-            document.getElementById('detailOrderTitle').innerText = 'Chi tiết ' + o.id + ' - Khách: ' + (o.customer || 'Khách hàng');
-            
-            var itemsText = (o.items || []).map(function(it) {
-                return it.title + ' ×' + it.qty;
-            }).join(', ');
+            var totalQty = (o.items || []).reduce(function(sum, it) { return sum + (it.qty || 1); }, 0);
+            var statusMap = {
+                'pending': { text: 'Chờ xử lý', bg: '#fef3c7', color: '#92400e' },
+                'shipping': { text: 'Đang giao', bg: '#e0f2fe', color: '#0369a1' },
+                'done': { text: 'Hoàn tất', bg: '#dcfce7', color: '#15803d' },
+                'cancelled': { text: 'Đã hủy', bg: '#fee2e2', color: '#b91c1c' }
+            };
+            var st = statusMap[o.status] || { text: o.status || 'Chờ xử lý', bg: '#f1f5f9', color: '#475569' };
 
-            document.getElementById('detailOrderItems').innerText = 
-                (itemsText || 'Không có sản phẩm') + ' · SĐT: ' + (o.phone || '0987 654 321') + ' · Đ/c: ' + (o.address || 'TP. Hồ Chí Minh');
+            var itemsRows = '';
+            (o.items || []).forEach(function(it) {
+                var book = (typeof DB !== 'undefined' && DB.getBookById) ? DB.getBookById(it.id) : null;
+                var rawImg = it.image || (book ? book.image : '');
+                var imgUrl = (typeof getBookImageUrl === 'function') ? getBookImageUrl(rawImg) : rawImg;
+                var subtotal = (it.price || 0) * (it.qty || 1);
+                
+                var thumb = imgUrl ? 
+                    '<img src="' + imgUrl + '" alt="' + (it.title || '') + '" style="width: 34px; height: 46px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-shrink: 0;" onerror="this.onerror=null; this.parentElement.innerHTML=\'<span style=\\\'font-size: 20px;\\\'>📖</span>\';">' :
+                    '<div style="width: 34px; height: 46px; border-radius: 4px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">📖</div>';
+
+                itemsRows += '<tr style="border-bottom: 1px solid #f1f5f9;">' +
+                    '<td style="padding: 10px 14px; font-weight: 600; color: #1e293b;">' +
+                        '<div style="display: flex; align-items: center; gap: 12px;">' +
+                            thumb +
+                            '<div>' +
+                                '<div style="font-size: 13.5px; color: #1e293b; font-weight: 600;">' + it.title + '</div>' +
+                                '<div style="font-size: 11.5px; color: #64748b; margin-top: 2px;">Mã sách: <strong>' + (it.id || 'N/A') + '</strong></div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td style="padding: 10px 14px; font-size: 13px; color: #475569;">' + formatMoney(it.price) + '</td>' +
+                    '<td style="padding: 10px 14px; text-align: center; font-size: 13.5px; font-weight: 700; color: #1f5f5b;">×' + (it.qty || 1) + '</td>' +
+                    '<td style="padding: 10px 14px; text-align: right; font-size: 13.5px; font-weight: 700; color: #1f5f5b;">' + formatMoney(subtotal) + '</td>' +
+                '</tr>';
+            });
+
+            box.innerHTML = 
+                '<div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid #e7e2d8; padding-bottom: 14px; margin-bottom: 16px;">' +
+                    '<div>' +
+                        '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">' +
+                            '<span style="font-size: 18px; font-weight: 800; color: #1f5f5b;">Chi tiết đơn hàng ' + o.id + '</span>' +
+                            '<span style="background: ' + st.bg + '; color: ' + st.color + '; padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">' + st.text + '</span>' +
+                        '</div>' +
+                        '<div style="font-size: 12.5px; color: #64748b;">Ngày đặt: <strong>' + (o.date || 'Hôm nay') + '</strong> · Phương thức thanh toán: <strong>' + (o.paymentMethod || 'COD (Tiền mặt)') + '</strong></div>' +
+                    '</div>' +
+                    '<div style="display: flex; gap: 8px; align-items: center;">' +
+                        '<label style="font-size: 12.5px; color: #64748b; font-weight: 600;">Trạng thái:</label>' +
+                        '<select class="inp" style="padding: 6px 12px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; font-weight: 600;" onchange="updateOrderStatusInline(\'' + o.id + '\', this.value)">' +
+                            '<option value="pending"' + (o.status === 'pending' ? ' selected' : '') + '>Chờ xử lý ▾</option>' +
+                            '<option value="shipping"' + (o.status === 'shipping' ? ' selected' : '') + '>Đang giao ▾</option>' +
+                            '<option value="done"' + (o.status === 'done' ? ' selected' : '') + '>Hoàn tất ▾</option>' +
+                            '<option value="cancelled"' + (o.status === 'cancelled' ? ' selected' : '') + '>Đã hủy ▾</option>' +
+                        '</select>' +
+                        '<button type="button" class="btn" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 6px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px;" onclick="cancelSelectedOrder(\'' + o.id + '\')">Hủy đơn</button>' +
+                    '</div>' +
+                '</div>' +
+
+                // Khối thông tin người nhận
+                '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; background: #ffffff; padding: 14px 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px; font-size: 13px;">' +
+                    '<div><span style="color: #64748b;">Người nhận:</span> <strong style="color: #1e293b;">' + (o.customer || 'Khách vãng lai') + '</strong></div>' +
+                    '<div><span style="color: #64748b;">Số điện thoại:</span> <strong style="color: #1e293b;">' + (o.phone || '0987 654 321') + '</strong></div>' +
+                    '<div style="grid-column: 1 / -1;"><span style="color: #64748b;">Địa chỉ giao hàng:</span> <strong style="color: #1e293b;">' + (o.address || 'TP. Hồ Chí Minh') + '</strong></div>' +
+                '</div>' +
+
+                // Bảng danh sách các cuốn sách trong đơn
+                '<div style="background: #ffffff; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">' +
+                    '<div style="padding: 10px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 700; font-size: 13px; color: #334155; display: flex; justify-content: space-between; align-items: center;">' +
+                        '<span>Danh sách sách đặt mua (' + (o.items || []).length + ' tựa sách)</span>' +
+                        '<span style="background: #e6f0ef; color: #1f5f5b; padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">Tổng cộng: ' + totalQty + ' cuốn</span>' +
+                    '</div>' +
+                    '<table style="width: 100%; border-collapse: collapse;">' +
+                        '<thead><tr style="background: #f8fafc; font-size: 12px; color: #64748b; text-transform: uppercase;">' +
+                            '<th style="padding: 10px 14px; text-align: left;">Tên cuốn sách</th>' +
+                            '<th style="padding: 10px 14px; text-align: left; width: 120px;">Đơn giá</th>' +
+                            '<th style="padding: 10px 14px; text-align: center; width: 90px;">Số lượng</th>' +
+                            '<th style="padding: 10px 14px; text-align: right; width: 130px;">Thành tiền</th>' +
+                        '</tr></thead>' +
+                        '<tbody>' + itemsRows + '</tbody>' +
+                    '</table>' +
+                '</div>' +
+
+                // Khối tổng kết
+                '<div style="display: flex; justify-content: flex-end; align-items: center; gap: 28px; padding-top: 6px; font-size: 14px;">' +
+                    '<div style="color: #64748b;">Tổng số lượng: <strong style="color: #1f5f5b; font-size: 15px;">' + totalQty + ' cuốn sách</strong></div>' +
+                    '<div style="font-size: 17px; font-weight: 800; color: #1f5f5b;">Tổng tiền: ' + formatMoney(o.total) + '</div>' +
+                '</div>';
         }
 
         function updateOrderStatusInline(orderId, newStatus) {
@@ -526,14 +636,11 @@
             renderOrders();
         }
 
-        function saveSelectedOrderStatus() {
-            showToast('Đã lưu thông tin đơn hàng ' + activeOrderId + '!');
-        }
-
-        function cancelSelectedOrder() {
-            showModalConfirm('Bạn có chắc muốn hủy đơn hàng ' + activeOrderId + '?', function() {
-                DB.updateOrderStatus(activeOrderId, 'cancelled', 'Đã hủy');
-                showToast('Đã hủy đơn hàng ' + activeOrderId + '!', 'danger');
+        function cancelSelectedOrder(orderId) {
+            var targetId = orderId || activeOrderId;
+            showModalConfirm('Bạn có chắc muốn hủy đơn hàng ' + targetId + '?', function() {
+                DB.updateOrderStatus(targetId, 'cancelled', 'Đã hủy');
+                showToast('Đã hủy đơn hàng ' + targetId + '!', 'danger');
                 renderOrders();
             }, null, { title: 'Hủy đơn hàng', confirmText: 'Hủy đơn', confirmDanger: true });
         }
